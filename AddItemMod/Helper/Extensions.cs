@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace AddItemMod.Helper
+namespace AddItemMod
 {
 
     public static class Extensions

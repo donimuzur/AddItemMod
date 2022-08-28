@@ -23,6 +23,8 @@ namespace AddItemMod
         private GameManager component = null;
         private GameObject obj = null;
         private GameObject buttonTemplate = null;
+        private GameObject panelTemplate = null;
+        private  bool isMenuOpen = false;
         public override void OnApplicationStart()
         {
             MelonLogger.Msg("AddItemMod Started");
@@ -208,6 +210,11 @@ namespace AddItemMod
             {
                 buttonTemplate = GameObject.Instantiate(Button_Resume);
             }
+            var Pause_menu = GameObject.FindObjectOfType<UIPauseWindow>();
+            if(Pause_menu != null)
+            {
+                panelTemplate = GameObject.Instantiate(Pause_menu.transform.FindChild("Pivot").gameObject);
+            }
             var getTowncenter = GameObject.FindObjectOfType<UIBuildingInfoWindowStorageModuleCollapsible>();
             if (getTowncenter != null)
             {
@@ -217,7 +224,8 @@ namespace AddItemMod
             }
             if (obj != null && buttonTemplate != null)
             {
-            
+                MelonLogger.Msg("Creating UI Open Menu Add Item");
+                #region Open Menu Button
                 buttonTemplate.transform.DetachChildren();
                 buttonTemplate.name = "AddItemButton";
 
@@ -231,7 +239,7 @@ namespace AddItemMod
                 buttonTemplate.AddComponent<RectTransform>();
 
                 var buttonTemplatelayoutElement = buttonTemplate.AddComponent<LayoutElement>();
-                buttonTemplatelayoutElement.ignoreLayout = true;
+                buttonTemplatelayoutElement.ignoreLayout = false;
 
                 GameObject gameObject2 = new GameObject("AddItemButtonText");
                 var component21 = gameObject2.AddComponent<RectTransform>();
@@ -253,10 +261,30 @@ namespace AddItemMod
                 buttonTemplateRectTransofrm.sizeDelta = new Vector2(150, 25);
 
                 buttonTemplate.transform.SetParent(obj.transform, false);
-                
                 buttonTemplate.transform.localPosition = new Vector3(150, 0, 0);
 
                 buttonTemplate.SetActiveRecursively(true);
+                #endregion
+
+                MelonLogger.Msg("Creating UI Add Item Menu ");
+                #region AddItemMenu
+
+                panelTemplate.transform.DetachChildren();
+                panelTemplate.name = "AddItemMenu";
+
+                var panelComponent1 = panelTemplate.AddComponent<UIDragable>();
+                panelComponent1.rectTransformToDrag = panelTemplate.GetComponent<RectTransform>();
+
+                var panelComponent2 = panelTemplate.AddComponent<GridLayoutGroup>();
+                panelComponent2.padding = new RectOffset(20, 20, 20, 20);
+                panelComponent2.spacing = new Vector2(10, 10);
+
+                GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
+
+                panelTemplate.transform.SetParent(windowCanvas.transform, false);
+                panelTemplate.SetActive(false);
+                panelTemplate.SetActiveRecursively(false);
+                #endregion
             }
         }
     }
