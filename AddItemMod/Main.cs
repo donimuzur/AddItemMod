@@ -389,7 +389,7 @@ namespace AddItemMod
             var buttonAddItemTemplatecomponent21 = buttonAddItemTemplategameObject2.AddComponent<RectTransform>();
 
             var buttonAddItemTemplatecomponent22 = buttonAddItemTemplategameObject2.AddComponent<Text>();
-            buttonAddItemTemplatecomponent22.text = item.name;
+            buttonAddItemTemplatecomponent22.text = text;
             buttonAddItemTemplatecomponent22.fontSize = 14;
             buttonAddItemTemplatecomponent22.fontStyle = FontStyle.Bold;
             buttonAddItemTemplatecomponent22.color = Color.white;
