@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,7 @@ namespace AddItemMod
         public const string Description = "Mod to Add Item";
         public const string Author = "donimuzur"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "2.0.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.1.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)    
     }
 
@@ -21,9 +22,14 @@ namespace AddItemMod
     {
 
         private GameManager component = null;
+        private Building selectedBuilding = null;
         private GameObject obj = null;
         private GameObject buttonTemplate = null;
         private GameObject panelTemplate = null;
+        private GameObject CopyButton = null;
+        private GameObject buttonAddItemTemplate = null;
+        private GameObject buttonCloseItemMenu = null;
+        private ItemBundle itemBundle = null;
         private  bool isMenuOpen = false;
         public override void OnApplicationStart()
         {
@@ -209,7 +215,8 @@ namespace AddItemMod
             if (Button_Resume != null)
             {
                 buttonTemplate = GameObject.Instantiate(Button_Resume);
-            }
+                CopyButton = GameObject.Instantiate(Button_Resume); 
+    }
             var Pause_menu = GameObject.FindObjectOfType<UIPauseWindow>();
             if(Pause_menu != null)
             {
@@ -230,6 +237,10 @@ namespace AddItemMod
                 buttonTemplate.name = "AddItemButton";
 
                 var buttonAction = buttonTemplate.GetComponent<Button>();
+                buttonAction.onClick.AddListener(delegate
+                {
+                    panelTemplate.SetActiveRecursively(true);
+                });
                 RectTransform toDestroy1 = buttonTemplate.GetComponent<RectTransform>();
                 GameObject.Destroy(toDestroy1);
 
@@ -275,16 +286,136 @@ namespace AddItemMod
                 var panelComponent1 = panelTemplate.AddComponent<UIDragable>();
                 panelComponent1.rectTransformToDrag = panelTemplate.GetComponent<RectTransform>();
 
+                panelTemplate.GetComponent<RectTransform>().sizeDelta = new Vector2(700,500);
+
                 var panelComponent2 = panelTemplate.AddComponent<GridLayoutGroup>();
-                panelComponent2.padding = new RectOffset(20, 20, 20, 20);
+                panelComponent2.padding = new RectOffset(20, 20, 20, 100);
                 panelComponent2.spacing = new Vector2(10, 10);
 
                 GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
 
+                CreateUIButton(new ItemBread() { name= "Add Bread"});
+                CreateUIButton(new ItemMeat() { name = "Add Meat" });
+                CreateUIButton(new ItemEggs() { name = "Add Eggs" });
+                CreateUIButton(new ItemFruit() { name = "Add Fruits" });
+                CreateUIButton(new ItemTool() { name = "Add Tool" });
+
+                CreateUIButton(new ItemPlatemail() { name = "Add Plate Mail" });
+                CreateUIButton(new ItemShield() { name = "Add Shield" });
+                CreateUIButton(new ItemHeavyWeapon() { name = "Add Heavy Weapon" });
+                CreateUIButton(new ItemCrossbow() { name = "Add Crossbow" });
+                CreateUIButton(new ItemShoes() { name = "Add Shoes" });
+                CreateUIButton(new ItemGoldIngot() { name = "Add Gold" });
+                CreateUIButton(new ItemStone() { name = "Add Stone" });
+                CreateUIButton(new ItemLogs() { name = "Add Wood" });
+
+
+                createCloseButton();
+                
                 panelTemplate.transform.SetParent(windowCanvas.transform, false);
                 panelTemplate.SetActive(false);
                 panelTemplate.SetActiveRecursively(false);
                 #endregion
+            }
+        }
+        void createCloseButton()
+        {
+            buttonCloseItemMenu = GameObject.Instantiate(CopyButton);
+            buttonCloseItemMenu.transform.DetachChildren();
+            buttonCloseItemMenu.name = "CloseItemMenuButton";
+
+            var buttonAction = buttonCloseItemMenu.GetComponent<Button>();
+            buttonAction.onClick.AddListener(delegate
+            {
+                panelTemplate.SetActiveRecursively(false);
+            });
+
+            RectTransform toDestroy1 = buttonCloseItemMenu.GetComponent<RectTransform>();
+            GameObject.Destroy(toDestroy1);
+
+            var toDestroy2 = buttonCloseItemMenu.GetComponent<LayoutElement>();
+            GameObject.Destroy(toDestroy2);
+
+            buttonCloseItemMenu.AddComponent<RectTransform>();
+
+            var buttonCloseItemMenulayoutElement = buttonCloseItemMenu.AddComponent<LayoutElement>();
+            buttonCloseItemMenulayoutElement.ignoreLayout = true;
+
+            GameObject gameObject2 = new GameObject("buttonCloseItemMenuText");
+            var component21 = gameObject2.AddComponent<RectTransform>();
+
+            var component22 = gameObject2.AddComponent<Text>();
+            component22.text = "Close Menu";
+            component22.fontSize = 14;
+            component22.fontStyle = FontStyle.Bold;
+            component22.color = Color.white;
+            component22.AssignDefaultFont();
+            component22.alignment = TextAnchor.MiddleCenter;
+
+            gameObject2.transform.SetParent(buttonCloseItemMenu.transform, false);
+
+            var buttonCloseItemMenuRectTransofrm = buttonCloseItemMenu.GetComponent<RectTransform>();
+            buttonCloseItemMenuRectTransofrm.sizeDelta = new Vector2(100, 50);
+
+            buttonCloseItemMenu.transform.SetParent(panelTemplate.transform, false);
+            buttonCloseItemMenu.transform.localPosition = new Vector3(0, -200, 0);
+
+            buttonCloseItemMenu.SetActiveRecursively(true);
+        }
+        void CreateUIButton(Item item)
+        {
+            buttonAddItemTemplate = GameObject.Instantiate(CopyButton);
+            buttonAddItemTemplate.name = "Add" + item.name + "Button";
+            buttonAddItemTemplate.transform.DetachChildren();
+
+            var buttonAddItemTemplatebuttonAction = buttonAddItemTemplate.GetComponent<Button>();
+            buttonAddItemTemplatebuttonAction.onClick.AddListener(delegate
+            {
+                addItem(item);
+            });
+
+            RectTransform buttonAddItemTemplatebuttonActiontoDestroy1 = buttonAddItemTemplate.GetComponent<RectTransform>();
+            GameObject.Destroy(buttonAddItemTemplatebuttonActiontoDestroy1);
+
+            var buttonAddItemTemplatetoDestroy2 = buttonAddItemTemplate.GetComponent<LayoutElement>();
+            GameObject.Destroy(buttonAddItemTemplatetoDestroy2);
+
+            buttonAddItemTemplate.AddComponent<RectTransform>();
+
+            var buttonAddItemTemplatelayoutElement = buttonAddItemTemplate.AddComponent<LayoutElement>();
+            buttonAddItemTemplatelayoutElement.ignoreLayout = false;
+            buttonAddItemTemplatelayoutElement.flexibleHeight = 30;
+
+            GameObject buttonAddItemTemplategameObject2 = new GameObject("buttonAddItemTemplateText"+item.name);
+            var buttonAddItemTemplatecomponent21 = buttonAddItemTemplategameObject2.AddComponent<RectTransform>();
+
+            var buttonAddItemTemplatecomponent22 = buttonAddItemTemplategameObject2.AddComponent<Text>();
+            buttonAddItemTemplatecomponent22.text = item.name;
+            buttonAddItemTemplatecomponent22.fontSize = 14;
+            buttonAddItemTemplatecomponent22.fontStyle = FontStyle.Bold;
+            buttonAddItemTemplatecomponent22.color = Color.white;
+            buttonAddItemTemplatecomponent22.AssignDefaultFont();
+            buttonAddItemTemplatecomponent22.alignment = TextAnchor.MiddleCenter;
+
+            buttonAddItemTemplategameObject2.transform.SetParent(buttonAddItemTemplate.transform, false);
+
+            var buttonAddItemTemplateRectTransofrm = buttonAddItemTemplate.GetComponent<RectTransform>();
+            buttonAddItemTemplateRectTransofrm.sizeDelta = new Vector2(100, 50);
+
+            buttonAddItemTemplate.transform.SetParent(panelTemplate.transform, false);
+
+            buttonAddItemTemplate.SetActiveRecursively(true);
+        }
+
+        void addItem(Item item)
+        {
+            component = GameObject.Find("GameManager").GetComponent<GameManager>();
+            selectedBuilding = component.inputManager.selectedObject.GetComponent<Building>();
+
+            if (selectedBuilding != null)
+            {
+                itemBundle = new ItemBundle(item, 100, 100);
+                selectedBuilding.storage.AddItems(itemBundle);
             }
         }
     }
