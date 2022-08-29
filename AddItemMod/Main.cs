@@ -294,20 +294,20 @@ namespace AddItemMod
 
                 GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
 
-                CreateUIButton(new ItemBread() { name= "Add Bread"});
-                CreateUIButton(new ItemMeat() { name = "Add Meat" });
-                CreateUIButton(new ItemEggs() { name = "Add Eggs" });
-                CreateUIButton(new ItemFruit() { name = "Add Fruits" });
-                CreateUIButton(new ItemTool() { name = "Add Tool" });
+                CreateUIButton(new ItemBread() , "Add Bread");
+                CreateUIButton(new ItemMeat() ,"Add Meat" );
+                CreateUIButton(new ItemEggs() ,"Add Eggs" );
+                CreateUIButton(new ItemFruit() ,"Add Fruits" );
+                CreateUIButton(new ItemTool() ,"Add Tool" );
 
-                CreateUIButton(new ItemPlatemail() { name = "Add Plate Mail" });
-                CreateUIButton(new ItemShield() { name = "Add Shield" });
-                CreateUIButton(new ItemHeavyWeapon() { name = "Add Heavy Weapon" });
-                CreateUIButton(new ItemCrossbow() { name = "Add Crossbow" });
-                CreateUIButton(new ItemShoes() { name = "Add Shoes" });
-                CreateUIButton(new ItemGoldIngot() { name = "Add Gold" });
-                CreateUIButton(new ItemStone() { name = "Add Stone" });
-                CreateUIButton(new ItemLogs() { name = "Add Wood" });
+                CreateUIButton(new ItemPlatemail() , "Add Plate Mail" );
+                CreateUIButton(new ItemShield() ,"Add Shield" );
+                CreateUIButton(new ItemHeavyWeapon() , "Add Heavy Weapon" );
+                CreateUIButton(new ItemCrossbow() , "Add Crossbow" );
+                CreateUIButton(new ItemShoes() ,"Add Shoes" );
+                CreateUIButton(new ItemGoldIngot() ,"Add Gold" );
+                CreateUIButton(new ItemStone(), "Add Stone" );
+                CreateUIButton(new ItemLogs() , "Add Wood" );
 
 
                 createCloseButton();
@@ -362,7 +362,7 @@ namespace AddItemMod
 
             buttonCloseItemMenu.SetActiveRecursively(true);
         }
-        void CreateUIButton(Item item)
+        void CreateUIButton(Item item, string text)
         {
             buttonAddItemTemplate = GameObject.Instantiate(CopyButton);
             buttonAddItemTemplate.name = "Add" + item.name + "Button";
@@ -384,7 +384,6 @@ namespace AddItemMod
 
             var buttonAddItemTemplatelayoutElement = buttonAddItemTemplate.AddComponent<LayoutElement>();
             buttonAddItemTemplatelayoutElement.ignoreLayout = false;
-            buttonAddItemTemplatelayoutElement.flexibleHeight = 30;
 
             GameObject buttonAddItemTemplategameObject2 = new GameObject("buttonAddItemTemplateText"+item.name);
             var buttonAddItemTemplatecomponent21 = buttonAddItemTemplategameObject2.AddComponent<RectTransform>();
@@ -398,9 +397,6 @@ namespace AddItemMod
             buttonAddItemTemplatecomponent22.alignment = TextAnchor.MiddleCenter;
 
             buttonAddItemTemplategameObject2.transform.SetParent(buttonAddItemTemplate.transform, false);
-
-            var buttonAddItemTemplateRectTransofrm = buttonAddItemTemplate.GetComponent<RectTransform>();
-            buttonAddItemTemplateRectTransofrm.sizeDelta = new Vector2(100, 50);
 
             buttonAddItemTemplate.transform.SetParent(panelTemplate.transform, false);
 
