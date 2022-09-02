@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,320 +16,153 @@ namespace AddItemMod
         public const string Description = "Mod to Add Item";
         public const string Author = "donimuzur"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "2.1.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.2.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)    
     }
 
     public class AddItemMod : MelonMod
     {
-
-        private GameManager component = null;
-        private Building selectedBuilding = null;
-        private GameObject obj = null;
-        private GameObject buttonTemplate = null;
-        private GameObject panelTemplate = null;
-        private GameObject CopyButton = null;
-        private GameObject buttonAddItemTemplate = null;
-        private GameObject buttonCloseItemMenu = null;
-        private ItemBundle itemBundle = null;
-        private  bool isMenuOpen = false;
+        private bool isFinishCreateUI = false;
+        GameObject panelTemplate = null;
+        Item selectedItem = null;
         public override void OnApplicationStart()
         {
             MelonLogger.Msg("AddItemMod Started");
         }
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        {
+            isFinishCreateUI = false;
+        }
         public override void OnUpdate()
         {
-            if (Input.GetKeyUp(KeyCode.RightControl) && Input.GetKeyUp(KeyCode.Alpha6))
+            if (isFinishCreateUI) return;
+
+            var gameManager = GameObject.Find("GameManager");
+            if(gameManager == null) return;
+
+            GameObject buttonTemplate = null;
+            int idx = 1;
+
+            MelonLogger.Msg("Creating UI Add Item Menu");
+
+            var getUIpausWindow = GameObject.FindObjectsOfType<UIPauseWindow>();
+            foreach(var uipausWindow in getUIpausWindow)
             {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
+                var panelToCopy =  uipausWindow.gameObject.transform.FindChild("Pivot").gameObject;
+                panelTemplate = GameObject.Instantiate(panelToCopy);
+                var getResumButton = uipausWindow.gameObject.transform.FindChild("Pivot").FindChild("Main Panel").FindChild("Button_Resume");
+                if (getResumButton != null && panelTemplate != null)
                 {
-                    var getBuilding = component.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
+                    var obj =  GameObject.FindObjectOfType<UIBuildingInfoWindowStorageModuleCollapsible>();
+                    #region Open Menu Button
+                    buttonTemplate = GameObject.Instantiate(getResumButton.gameObject);
+                    buttonTemplate.transform.DetachChildren();
+                    buttonTemplate.name = "AddItemButton" + idx;
+
+                    panelTemplate.transform.DetachChildren();
+                    panelTemplate.name = "AddItemMenu";
+
+                    var toDestroy1 = buttonTemplate.GetComponent<LayoutElement>();
+                    GameObject.Destroy(toDestroy1);
+
+                    
+                    var buttonAction = buttonTemplate.GetComponent<Button>();
+                    buttonAction.onClick.AddListener(delegate
                     {
-                        ItemBundle itemBundle = new ItemBundle(new ItemBread(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightControl) && Input.GetKeyUp(KeyCode.Alpha7))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemMeat(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightControl) && Input.GetKeyUp(KeyCode.Alpha8))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemEggs(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightControl) && Input.GetKeyUp(KeyCode.Alpha9))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemFruit(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightControl) && Input.GetKeyUp(KeyCode.Alpha0))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemTool(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Alpha6))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemPlatemail(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Alpha7))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemShield(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Alpha8))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemHeavyWeapon(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Alpha9))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemCrossbow(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Alpha0))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemShoes(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.M))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemGoldIngot(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Comma))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemStone(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
-            if (Input.GetKeyUp(KeyCode.RightAlt) && Input.GetKeyUp(KeyCode.Period))
-            {
-                var component = GameObject.Find("GameManager").GetComponent<GameManager>();
-                if (component != null)
-                {
-                    var getBuilding = component.debugManager.inputManager.selectedObject.GetComponent<Building>();
-                    if (getBuilding != null)
-                    {
-                        ItemBundle itemBundle = new ItemBundle(new ItemLogs(), 100, 100);
-                        getBuilding.storage.AddItems(itemBundle);
-                    }
+                        var objs = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(Transform))) ;
+                        foreach(var getObj in objs)
+                        {
+                            if (getObj.name != "AddItemMenu") continue;
+                            getObj.TryCast<Transform>().gameObject.SetActiveRecursively(true);
+                        }
+                    });
+
+                    var buttonTemplatelayoutElement = buttonTemplate.AddComponent<LayoutElement>();
+                    buttonTemplatelayoutElement.ignoreLayout = false;
+
+                    GameObject gameObject2 = new GameObject("AddItemButtonText");
+                    var component21 = gameObject2.AddComponent<RectTransform>();
+
+                    var component22 = gameObject2.AddComponent<Text>();
+                    component22.text = "Open Menu";
+                    component22.fontSize = 14;
+                    component22.fontStyle = FontStyle.Bold;
+                    component22.color = Color.white;
+                    component22.AssignDefaultFont();
+                    component22.alignment = TextAnchor.MiddleCenter;
+
+                    gameObject2.transform.SetParent(buttonTemplate.transform, false);
+
+                    var component3 = buttonTemplate.AddComponent<HorizontalLayoutGroup>();
+                    component3.childAlignment = TextAnchor.MiddleCenter;
+
+                    var buttonTemplateRectTransofrm = buttonTemplate.GetComponent<RectTransform>();
+                    buttonTemplateRectTransofrm.sizeDelta = new Vector2(150, 25);
+
+                    buttonTemplate.transform.SetParent(obj.gameObject.transform, false);
+                    buttonTemplate.transform.localPosition = new Vector3(150, 0, 0);
+
+                    buttonTemplate.SetActiveRecursively(true);
+                    #endregion
+
+                    #region AddItemMenu
+
+                    var panelComponent1 = panelTemplate.AddComponent<UIDragable>();
+                    panelComponent1.rectTransformToDrag = panelTemplate.GetComponent<RectTransform>();
+
+                    panelTemplate.GetComponent<RectTransform>().sizeDelta = new Vector2(700, 500);
+
+                    var panelComponent2 = panelTemplate.AddComponent<GridLayoutGroup>();
+                    panelComponent2.padding = new RectOffset(20, 20, 20, 100);
+                    panelComponent2.spacing = new Vector2(10, 10);
+
+                    GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
+                    
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBread(), "Add Bread");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemMeat(), "Add Meat");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemEggs(), "Add Eggs");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFruit(), "Add Fruits");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemTool(), "Add Tool");
+
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPlatemail(), "Add Plate Mail");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemShield(), "Add Shield");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHeavyWeapon(), "Add Heavy Weapon");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemCrossbow(), "Add Crossbow");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemShoes(), "Add Shoes");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemGoldIngot(), "Add Gold");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemStone(), "Add Stone");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemLogs(), "Add Wood");
+                    
+                    //added for update
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemIron(), "Add Iron");
+                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWater(), "Add Water");
+
+                    createCloseButton(getResumButton.gameObject, panelTemplate);
+
+                    panelTemplate.transform.SetParent(windowCanvas.transform, false);
+                    panelTemplate.SetActive(false);
+                    panelTemplate.SetActiveRecursively(false);
+                    #endregion
                 }
             }
 
-            if (obj != null)
-            {
-                return;
-            }
-            var Button_Resume = GameObject.Find("Button_Resume");
-            if (Button_Resume != null)
-            {
-                buttonTemplate = GameObject.Instantiate(Button_Resume);
-                CopyButton = GameObject.Instantiate(Button_Resume); 
-    }
-            var Pause_menu = GameObject.FindObjectOfType<UIPauseWindow>();
-            if(Pause_menu != null)
-            {
-                panelTemplate = GameObject.Instantiate(Pause_menu.transform.FindChild("Pivot").gameObject);
-            }
-            var getTowncenter = GameObject.FindObjectOfType<UIBuildingInfoWindowStorageModuleCollapsible>();
-            if (getTowncenter != null)
-            {
-                MelonLogger.Msg("Creating UI AddItemButton");
-                
-                obj = getTowncenter.gameObject;
-            }
-            if (obj != null && buttonTemplate != null)
-            {
-                MelonLogger.Msg("Creating UI Open Menu Add Item");
-                #region Open Menu Button
-                buttonTemplate.transform.DetachChildren();
-                buttonTemplate.name = "AddItemButton";
-
-                var buttonAction = buttonTemplate.GetComponent<Button>();
-                buttonAction.onClick.AddListener(delegate
-                {
-                    panelTemplate.SetActiveRecursively(true);
-                });
-                RectTransform toDestroy1 = buttonTemplate.GetComponent<RectTransform>();
-                GameObject.Destroy(toDestroy1);
-
-                var toDestroy2 = buttonTemplate.GetComponent<LayoutElement>();
-                GameObject.Destroy(toDestroy2);
-
-                buttonTemplate.AddComponent<RectTransform>();
-
-                var buttonTemplatelayoutElement = buttonTemplate.AddComponent<LayoutElement>();
-                buttonTemplatelayoutElement.ignoreLayout = false;
-
-                GameObject gameObject2 = new GameObject("AddItemButtonText");
-                var component21 = gameObject2.AddComponent<RectTransform>();
-
-                var component22 = gameObject2.AddComponent<Text>();
-                component22.text = "Open Menu";
-                component22.fontSize = 14;
-                component22.fontStyle = FontStyle.Bold;
-                component22.color = Color.white;
-                component22.AssignDefaultFont();
-                component22.alignment = TextAnchor.MiddleCenter;
-
-                gameObject2.transform.SetParent(buttonTemplate.transform, false);
-
-                var component3 = buttonTemplate.AddComponent<HorizontalLayoutGroup>();
-                component3.childAlignment = TextAnchor.MiddleCenter;
-
-                var buttonTemplateRectTransofrm = buttonTemplate.GetComponent<RectTransform>();
-                buttonTemplateRectTransofrm.sizeDelta = new Vector2(150, 25);
-
-                buttonTemplate.transform.SetParent(obj.transform, false);
-                buttonTemplate.transform.localPosition = new Vector3(150, 0, 0);
-
-                buttonTemplate.SetActiveRecursively(true);
-                #endregion
-
-                MelonLogger.Msg("Creating UI Add Item Menu ");
-                #region AddItemMenu
-
-                panelTemplate.transform.DetachChildren();
-                panelTemplate.name = "AddItemMenu";
-
-                var panelComponent1 = panelTemplate.AddComponent<UIDragable>();
-                panelComponent1.rectTransformToDrag = panelTemplate.GetComponent<RectTransform>();
-
-                panelTemplate.GetComponent<RectTransform>().sizeDelta = new Vector2(700,500);
-
-                var panelComponent2 = panelTemplate.AddComponent<GridLayoutGroup>();
-                panelComponent2.padding = new RectOffset(20, 20, 20, 100);
-                panelComponent2.spacing = new Vector2(10, 10);
-
-                GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
-
-                CreateUIButton(new ItemBread() , "Add Bread");
-                CreateUIButton(new ItemMeat() ,"Add Meat" );
-                CreateUIButton(new ItemEggs() ,"Add Eggs" );
-                CreateUIButton(new ItemFruit() ,"Add Fruits" );
-                CreateUIButton(new ItemTool() ,"Add Tool" );
-
-                CreateUIButton(new ItemPlatemail() , "Add Plate Mail" );
-                CreateUIButton(new ItemShield() ,"Add Shield" );
-                CreateUIButton(new ItemHeavyWeapon() , "Add Heavy Weapon" );
-                CreateUIButton(new ItemCrossbow() , "Add Crossbow" );
-                CreateUIButton(new ItemShoes() ,"Add Shoes" );
-                CreateUIButton(new ItemGoldIngot() ,"Add Gold" );
-                CreateUIButton(new ItemStone(), "Add Stone" );
-                CreateUIButton(new ItemLogs() , "Add Wood" );
-
-
-                createCloseButton();
-                
-                panelTemplate.transform.SetParent(windowCanvas.transform, false);
-                panelTemplate.SetActive(false);
-                panelTemplate.SetActiveRecursively(false);
-                #endregion
-            }
+            isFinishCreateUI = true;
         }
-        void createCloseButton()
+        void createCloseButton(GameObject buttonToCopy, GameObject panelTemplate2 )
         {
-            buttonCloseItemMenu = GameObject.Instantiate(CopyButton);
+            var buttonCloseItemMenu = GameObject.Instantiate(buttonToCopy);
             buttonCloseItemMenu.transform.DetachChildren();
             buttonCloseItemMenu.name = "CloseItemMenuButton";
 
             var buttonAction = buttonCloseItemMenu.GetComponent<Button>();
             buttonAction.onClick.AddListener(delegate
             {
-                panelTemplate.SetActiveRecursively(false);
+                var objs = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(Transform)));
+                foreach (var getObj in objs)
+                {
+                    if (getObj.name != "AddItemMenu") continue;
+                    getObj.TryCast<Transform>().gameObject.SetActiveRecursively(false);
+                }
             });
 
             RectTransform toDestroy1 = buttonCloseItemMenu.GetComponent<RectTransform>();
@@ -357,21 +192,22 @@ namespace AddItemMod
             var buttonCloseItemMenuRectTransofrm = buttonCloseItemMenu.GetComponent<RectTransform>();
             buttonCloseItemMenuRectTransofrm.sizeDelta = new Vector2(100, 50);
 
-            buttonCloseItemMenu.transform.SetParent(panelTemplate.transform, false);
+            buttonCloseItemMenu.transform.SetParent(panelTemplate2.transform, false);
             buttonCloseItemMenu.transform.localPosition = new Vector3(0, -200, 0);
 
             buttonCloseItemMenu.SetActiveRecursively(true);
         }
-        void CreateUIButton(Item item, string text)
+        void CreateUIButton(GameObject copyButton, GameObject panelTemplate, Item item, string text)
         {
-            buttonAddItemTemplate = GameObject.Instantiate(CopyButton);
+            var buttonAddItemTemplate = GameObject.Instantiate(copyButton);
             buttonAddItemTemplate.name = "Add" + item.name + "Button";
             buttonAddItemTemplate.transform.DetachChildren();
 
             var buttonAddItemTemplatebuttonAction = buttonAddItemTemplate.GetComponent<Button>();
             buttonAddItemTemplatebuttonAction.onClick.AddListener(delegate
             {
-                addItem(item);
+                selectedItem = item;
+                addItem();
             });
 
             RectTransform buttonAddItemTemplatebuttonActiontoDestroy1 = buttonAddItemTemplate.GetComponent<RectTransform>();
@@ -403,18 +239,23 @@ namespace AddItemMod
             buttonAddItemTemplate.SetActiveRecursively(true);
         }
 
-        void addItem(Item item)
+        void addItem()
         {
-            component = GameObject.Find("GameManager").GetComponent<GameManager>();
-            selectedBuilding = component.inputManager.selectedObject.GetComponent<Building>();
-
-            if (selectedBuilding != null)
+            var gameManagerAddItemObject = GameObject.Find("GameManager");
+            if (gameManagerAddItemObject != null)
             {
-                itemBundle = new ItemBundle(item, 100, 100);
-                selectedBuilding.storage.AddItems(itemBundle);
+                var inputManagerAddItem = gameManagerAddItemObject.GetComponent<InputManager>();
+                if(inputManagerAddItem != null)
+                {
+                    var selectedBuilding = inputManagerAddItem.selectedObject.GetComponent<Building>();
+                    if (selectedBuilding != null)
+                    {
+                        var itemBundle = new ItemBundle(selectedItem, 100, 100);
+                        selectedBuilding.storage.AddItems(itemBundle);
+                    }
+                }
             }
         }
     }
-
 }
 
