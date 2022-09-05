@@ -18,7 +18,7 @@ namespace AddItemMod
         public const string Description = "Mod to Add Item";
         public const string Author = "donimuzur"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "2.2.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.3.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)    
     }
 
@@ -179,7 +179,11 @@ namespace AddItemMod
 
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemIron(), "Add Iron");
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGoldIngot(), "Add Gold");
-                                
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHeavyTool(), "Add Heavy Tool");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBrick(), "Add Brick");
+
+
                                 var uiCloseButton = createCloseButton(uiPanel, getResumeButton.GetComponent<Image>().sprite);
                                 var uiCloseButtonRectTransofrm = uiCloseButton.GetComponent<RectTransform>();
                                 uiCloseButtonRectTransofrm.anchoredPosition = Vector3.zero;
@@ -188,7 +192,7 @@ namespace AddItemMod
                                 var uiSlider = createSlider(uiPanel);
                                 var uiSliderRectTransofrm = uiSlider.GetComponent<RectTransform>();
                                 uiSliderRectTransofrm.anchoredPosition = Vector3.zero;
-                                uiSliderRectTransofrm.localPosition = new Vector3(0, -190, 0);
+                                uiSliderRectTransofrm.localPosition = new Vector3(120, -190, 0);
                                 #endregion
 
                                 finished = true;
@@ -273,14 +277,14 @@ namespace AddItemMod
             component12.text = "100";
             component12.fontSize = 14;
             component12.fontStyle = FontStyle.Bold;
-            component12.color = new Color(122, 185 ,0);
+            component12.color = Color.black;
             component12.AssignDefaultFont();
             component12.alignment = TextAnchor.MiddleCenter;
             uiSliderText.transform.SetParent(uiPanel.transform, false);
 
             var uiSliderTextRectTransofrm = uiSliderText.GetComponent<RectTransform>();
             uiSliderTextRectTransofrm.anchoredPosition = Vector3.zero;
-            uiSliderTextRectTransofrm.localPosition = new Vector3(180, -190, 0);
+            uiSliderTextRectTransofrm.localPosition = new Vector3(300, -190, 0);
 
             return uiSlider;
         }
