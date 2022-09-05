@@ -29,6 +29,7 @@ namespace AddItemMod
         public GameManager gameManager = null;
         public InputManager inputManager = null;
         public GameObject selectedBuilding = null;
+        public static int sliderValue = 100;
         public override void OnApplicationStart()
         {
             MelonLogger.Msg("AddItemMod Started");
@@ -36,6 +37,7 @@ namespace AddItemMod
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             finished = false;
+            sliderValue = 100;
         }
         public override void OnUpdate()
         {
@@ -180,9 +182,13 @@ namespace AddItemMod
                                 
                                 var uiCloseButton = createCloseButton(uiPanel, getResumeButton.GetComponent<Image>().sprite);
                                 var uiCloseButtonRectTransofrm = uiCloseButton.GetComponent<RectTransform>();
-                                
                                 uiCloseButtonRectTransofrm.anchoredPosition = Vector3.zero;
-                                uiCloseButtonRectTransofrm.localPosition = new Vector3(0,-250,0);
+                                uiCloseButtonRectTransofrm.localPosition = new Vector3(0, -250, 0);
+
+                                var uiSlider = createSlider(uiPanel);
+                                var uiSliderRectTransofrm = uiSlider.GetComponent<RectTransform>();
+                                uiSliderRectTransofrm.anchoredPosition = Vector3.zero;
+                                uiSliderRectTransofrm.localPosition = new Vector3(0, -190, 0);
                                 #endregion
 
                                 finished = true;
@@ -195,6 +201,7 @@ namespace AddItemMod
                 else if (selectedBuilding == null)
                 {
                     finished = false;
+                    sliderValue = 100;
                 }
             }
         }
@@ -215,7 +222,68 @@ namespace AddItemMod
 
             return uiPanel;
         }
+        GameObject createSlider(GameObject uiPanel)
+        {
+            UIControls.Resources uiResources = new UIControls.Resources();
 
+            uiResources.background = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#9E9E9EFF"));
+            uiResources.standard = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#7AB900FF"));
+            uiResources.knob = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#191919FF"));
+
+            GameObject uiSlider = UIControls.CreateSlider(uiResources);
+            uiSlider.name = "AddItemSlider";
+
+            var slider = uiSlider.GetComponent<Slider>();
+            slider.maxValue = 10000;
+            slider.minValue = 100;
+            slider.value = 100;
+            slider.onValueChanged.AddListener(delegate { 
+                sliderValue = (int)Math.Round((Decimal)slider.value);
+                var getUISliderText = GameObject.Find("AddItemSliderText");
+                if(getUISliderText != null)
+                {
+                    var getText = getUISliderText.GetComponent<Text>();
+                    getText.text = sliderValue.ToString();
+                }
+            });
+
+            var uiSliderlayoutElement = uiSlider.AddComponent<LayoutElement>();
+            uiSliderlayoutElement.ignoreLayout = true;
+            uiSliderlayoutElement.preferredWidth = 300;
+            uiSliderlayoutElement.preferredHeight = 40;
+            uiSliderlayoutElement.minHeight = 40;
+            uiSliderlayoutElement.minWidth = 300;
+            
+            var uiSliderRectTransform = uiSlider.GetComponent<RectTransform>();
+            uiSliderRectTransform.sizeDelta = new Vector2(300, 40);
+
+            uiSlider.transform.SetParent(uiPanel.transform, false);
+
+            GameObject uiSliderText = new GameObject("AddItemSliderText");
+            var component11 = uiSliderText.AddComponent<RectTransform>();
+
+            var uiSliderTextlayoutElement = uiSliderText.AddComponent<LayoutElement>();
+            uiSliderTextlayoutElement.ignoreLayout = true;
+            uiSliderTextlayoutElement.preferredWidth = 100;
+            uiSliderTextlayoutElement.preferredHeight = 40;
+            uiSliderTextlayoutElement.minHeight = 40;
+            uiSliderTextlayoutElement.minWidth = 100;
+
+            var component12 = uiSliderText.AddComponent<Text>();
+            component12.text = "100";
+            component12.fontSize = 14;
+            component12.fontStyle = FontStyle.Bold;
+            component12.color = new Color(122, 185 ,0);
+            component12.AssignDefaultFont();
+            component12.alignment = TextAnchor.MiddleCenter;
+            uiSliderText.transform.SetParent(uiPanel.transform, false);
+
+            var uiSliderTextRectTransofrm = uiSliderText.GetComponent<RectTransform>();
+            uiSliderTextRectTransofrm.anchoredPosition = Vector3.zero;
+            uiSliderTextRectTransofrm.localPosition = new Vector3(180, -190, 0);
+
+            return uiSlider;
+        }
         GameObject createCloseButton(GameObject parent, Sprite sprite)
         {
             GameObject uiCloseButton = UIControls.CreateButton(new UIControls.Resources { standard = sprite });
@@ -271,7 +339,7 @@ namespace AddItemMod
                             var selectedBuilding = selectedObj.GetComponent<Building>();
                             if (selectedBuilding != null)
                             {
-                                var itemBundle = new ItemBundle(item, 100, 100);
+                                var itemBundle = new ItemBundle(item, Convert.ToUInt32(sliderValue), 100);
                                 selectedBuilding.storage.AddItems(itemBundle);
                             }
                         }                        
