@@ -160,23 +160,12 @@ namespace AddItemMod.UI
         public static GameObject CreateButton(UIControls.Resources resources)
         {
             GameObject gameObject = UIControls.CreateUIElementRoot("Button", UIControls.s_ThickElementSize);
-            GameObject gameObject2 = new GameObject("Text");
-            gameObject2.AddComponent<RectTransform>();
-            UIControls.SetParentAndAlign(gameObject2, gameObject);
             Image image = gameObject.AddComponent<Image>();
             image.sprite = resources.standard;
             image.type = Image.Type.Sliced;
             image.color = UIControls.s_DefaultSelectableColor;
             Button defaultColorTransitionValues = gameObject.AddComponent<Button>();
-            UIControls.SetDefaultColorTransitionValues(defaultColorTransitionValues);
-            Text text = gameObject2.AddComponent<Text>();
-            text.text = "Button";
-            text.alignment = TextAnchor.MiddleCenter;
-            UIControls.SetDefaultTextValues(text);
-            RectTransform component = gameObject2.GetComponent<RectTransform>();
-            component.anchorMin = Vector2.zero;
-            component.anchorMax = Vector2.one;
-            component.sizeDelta = Vector2.zero;
+
             return gameObject;
         }
 

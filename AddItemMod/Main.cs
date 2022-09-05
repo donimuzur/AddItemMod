@@ -6,6 +6,7 @@ using System.Linq;
 using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace AddItemMod
@@ -23,327 +24,291 @@ namespace AddItemMod
 
     public class AddItemMod : MelonMod
     {
-        static bool isFinishCreateUI = false;
-        static GameObject panelTemplate = null;
-        static Item selectedItem = null;
+
+        bool finished = false;
+        public GameManager gameManager = null;
+        public InputManager inputManager = null;
+        public GameObject selectedBuilding = null;
         public override void OnApplicationStart()
         {
             MelonLogger.Msg("AddItemMod Started");
         }
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
-            isFinishCreateUI = false;
-            panelTemplate = null;
-
+            finished = false;
         }
         public override void OnUpdate()
         {
-            if (isFinishCreateUI) return;
+            if (SceneManager.GetActiveScene().name != "Frontier") return;
 
-            var gameManager = GameObject.Find("GameManager");
-            if(gameManager == null) return;
-
-            GameObject buttonTemplate = null;
-            int idx = 1;
-
-            MelonLogger.Msg("Creating UI Add Item Menu");
-
-            var getUIpausWindow = GameObject.FindObjectsOfType<UIPauseWindow>();
-            
-            foreach(var uipausWindow in getUIpausWindow)
+            var gameManagerObj = GameObject.Find("GameManager");
+            if (gameManagerObj != null)
             {
-                var panelToCopy =  uipausWindow.gameObject.transform.FindChild("Pivot").gameObject;
-                panelTemplate = GameObject.Instantiate(panelToCopy);
-                var getResumButton = uipausWindow.gameObject.transform.FindChild("Pivot").FindChild("Main Panel").FindChild("Button_Resume");
-                if (getResumButton != null && panelTemplate != null)
+                inputManager = gameManagerObj.GetComponent<InputManager>();
+                selectedBuilding = inputManager.selectedObject;
+                if (selectedBuilding != null && !finished)
                 {
-                    var obj =  GameObject.FindObjectOfType<UIBuildingInfoWindowStorageModuleCollapsible>();
-                    #region Open Menu Button
-                    buttonTemplate = GameObject.Instantiate(getResumButton.gameObject);
-                    buttonTemplate.transform.DetachChildren();
-                    buttonTemplate.name = "AddItemButton" + idx;
-                    GameObject.DontDestroyOnLoad(buttonTemplate);
+                    GameObject.Destroy(GameObject.Find("AddItemButton"));
+                    var getUIpausWindowList = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(UIPauseWindow)));
 
-                    panelTemplate.transform.DetachChildren();
-                    panelTemplate.name = "AddItemMenu";
-
-                    var toDestroy1 = buttonTemplate.GetComponent<LayoutElement>();
-                    GameObject.Destroy(toDestroy1);
-
-                    
-                    var buttonAction = buttonTemplate.GetComponent<Button>();
-                    buttonAction.onClick.AddListener(delegate
+                    if (getUIpausWindowList != null && getUIpausWindowList.Count > 0)
                     {
-                        var objs = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(Transform)));
-                        foreach (var getObj in objs)
+                        var getUIpausWindow = getUIpausWindowList[0].TryCast<UIPauseWindow>();
+                        var getResumeButton = getUIpausWindow.gameObject.transform.FindChild("Pivot").FindChild("Main Panel").FindChild("Button_Resume");
+                        if (getResumeButton != null)
                         {
-                            if (getObj.name != "AddItemMenu") continue;
-                            getObj.TryCast<Transform>().gameObject.SetActive(true);
+                            var getUIBuildingInfoWindowStorageModuleCollapsible = GameObject.FindObjectOfType<UIBuildingInfoWindowStorageModuleCollapsible>();
+                            if (getUIBuildingInfoWindowStorageModuleCollapsible != null)
+                            {
+                                GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
+                                var uiPanel = createUIPanel(windowCanvas, 600, 1000, null);
+                                uiPanel.name = "AddItemPanel";
+
+                                var panelComponent1 = uiPanel.AddComponent<UIDragable>();
+                                panelComponent1.rectTransformToDrag = uiPanel.GetComponent<RectTransform>();
+
+                                Sprite btnSprite = getResumeButton.GetComponent<Image>().sprite;
+                                GameObject uiButton = UIControls.CreateButton(new UIControls.Resources { standard = btnSprite });
+                                uiButton.name = "AddItemButton";
+
+                                GameObject gameObject1 = new GameObject("AddItemButtonText");
+                                var component11 = gameObject1.AddComponent<RectTransform>();
+
+                                var component12 = gameObject1.AddComponent<Text>();
+                                component12.text = "Open Menu";
+                                component12.fontSize = 14;
+                                component12.fontStyle = FontStyle.Bold;
+                                component12.color = Color.white;
+                                component12.AssignDefaultFont();
+                                component12.alignment = TextAnchor.MiddleCenter;
+
+                                gameObject1.transform.SetParent(uiButton.transform, false);
+
+                                var buttonActionuiButton = uiButton.GetComponent<Button>();
+                                buttonActionuiButton.onClick.AddListener(delegate
+                                {
+                                    uiPanel.SetActive(true);
+                                });
+
+                                var component3 = uiButton.AddComponent<HorizontalLayoutGroup>();
+                                component3.childAlignment = TextAnchor.MiddleCenter;
+
+                                var uiButtonlayoutElement = uiButton.AddComponent<LayoutElement>();
+                                uiButtonlayoutElement.ignoreLayout = false;
+
+                                uiButton.transform.SetParent(getUIBuildingInfoWindowStorageModuleCollapsible.gameObject.transform, false);
+                                var uiButtonRectTransofrm = uiButton.GetComponent<RectTransform>();
+                                uiButtonRectTransofrm.sizeDelta = new Vector2(80, 35);
+                                uiButtonRectTransofrm.localPosition = new Vector3(400, -71, 0);
+
+
+                                var panelComponent2 = uiPanel.AddComponent<GridLayoutGroup>();
+                                panelComponent2.padding = new RectOffset(20, 20, 20, 100);
+                                panelComponent2.spacing = new Vector2(5, 5);
+                                panelComponent2.cellSize = new Vector2(80, 80);
+
+                                
+                                uiPanel.transform.SetParent(windowCanvas.transform, false);
+                                uiPanel.SetActive(false);
+
+                                #region addItemButton
+                                //Usable Items
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHideCoat(), "Add Hide Coats");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCarcass(), "Add Carcasses");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemTool(), "Add Tool");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemWeapon(), "Add Weapon");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSimpleWeapon(), "Add Crude Weapon");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHeavyWeapon(), "Add Heavy Weapon");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemShield(), "Add Shield");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHauberk(), "Add Hauberk");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemPlatemail(), "Add Plate Mail");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBow(), "Add Bow");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCrossbow(), "Add Crossbow");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemArrow(), "Add Arrows");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemShoes(), "Add Shoes");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemLinenClothes(), "Add Linen Clothes");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemWheatBeer(), "Add Beer");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBasket(), "Add Basket");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFurniture(), "Add Furniture");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSoap(), "Add Soap");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCandle(), "Add Candle");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSpice(), "Add Spice");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemPottery(), "Add Pottery");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGlass(), "Add Glassware");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBarrel(), "Add Barrel");
+
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBerries(), "Add Berries");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemMeat(), "Add Meat");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSmokedMeat(), "Add Smoked Meat");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBeans(), "Add Beans");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGreens(), "Add Greens");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemRootVegetable(), "Add Vegetables");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBread(), "Add Bread");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFish(), "Add Fish");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSmokedFish(), "Add Smoked Fish");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemMushroom(), "Add Mushrooms");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemNuts(), "Add Nuts");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFruit(), "Add Fruits");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemPreservedVeg(), "Add Preserved Vegetables");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemPreserves(), "Add Preserves");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemEggs(), "Add Eggs");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemMilk(), "Add Milk");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCheese(), "Add Cheese");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemMedicine(), "Add Medicine");
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFirewood(), "Add Firewood");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemPlanks(), "Add Planks");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFlour(), "Add Flour");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHide(), "Add Pelts");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemTallow(), "Add Tallow");
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemLogs(), "Add Wood");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemStone(), "Add Stone");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemRoots(), "Add Medicinal Roots");
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGrain(), "Add Grain");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemWater(), "Add Water");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemFlax(), "Add Flax");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHerbs(), "Add Herbs");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemWillow(), "Add Willow");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHoney(), "Add Honey");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemWax(), "Add Wax");
+
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemIron(), "Add Iron");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGoldIngot(), "Add Gold");
+                                
+                                var uiCloseButton = createCloseButton(uiPanel, getResumeButton.GetComponent<Image>().sprite);
+                                var uiCloseButtonRectTransofrm = uiCloseButton.GetComponent<RectTransform>();
+                                
+                                uiCloseButtonRectTransofrm.anchoredPosition = Vector3.zero;
+                                uiCloseButtonRectTransofrm.localPosition = new Vector3(0,-250,0);
+                                #endregion
+
+                                finished = true;
+
+                            }
+
                         }
-                    });
-
-                    var buttonTemplatelayoutElement = buttonTemplate.AddComponent<LayoutElement>();
-                    buttonTemplatelayoutElement.ignoreLayout = false;
-
-                    GameObject gameObject2 = new GameObject("AddItemButtonText");
-                    var component21 = gameObject2.AddComponent<RectTransform>();
-
-                    var component22 = gameObject2.AddComponent<Text>();
-                    component22.text = "Open Menu";
-                    component22.fontSize = 14;
-                    component22.fontStyle = FontStyle.Bold;
-                    component22.color = Color.white;
-                    component22.AssignDefaultFont();
-                    component22.alignment = TextAnchor.MiddleCenter;
-
-                    gameObject2.transform.SetParent(buttonTemplate.transform, false);
-
-                    var component3 = buttonTemplate.AddComponent<HorizontalLayoutGroup>();
-                    component3.childAlignment = TextAnchor.MiddleCenter;
-
-                    var buttonTemplateRectTransofrm = buttonTemplate.GetComponent<RectTransform>();
-                    buttonTemplateRectTransofrm.sizeDelta = new Vector2(150, 25);
-                    
-                    GameObject.DontDestroyOnLoad(obj.gameObject);
-
-                    buttonTemplate.transform.SetParent(obj.gameObject.transform, false);
-                    buttonTemplate.transform.localPosition = new Vector3(150, 0, 0);
-
-                    buttonTemplate.SetActiveRecursively(true);
-                    #endregion
-
-                    #region AddItemMenu
-
-                    var panelComponent1 = panelTemplate.AddComponent<UIDragable>();
-                    panelComponent1.rectTransformToDrag = panelTemplate.GetComponent<RectTransform>();
-
-                    panelTemplate.GetComponent<RectTransform>().sizeDelta = new Vector2(1020, 800);
-
-                    var panelComponent2 = panelTemplate.AddComponent<GridLayoutGroup>();
-                    panelComponent2.padding = new RectOffset(20, 20, 20, 100);
-                    panelComponent2.spacing = new Vector2(10, 10);
-
-                    GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
-
-                    #region addItemButton
-                    //Usable Items
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHideCoat(), "Add Hide Coats");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemCarcass(), "Add Carcasses");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemTool(), "Add Tool");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWeapon(), "Add Weapon");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemSimpleWeapon(), "Add Crude Weapon");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHeavyWeapon(), "Add Heavy Weapon");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemShield(), "Add Shield");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHauberk(), "Add Hauberk");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPlatemail(), "Add Plate Mail");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBow(), "Add Bow");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemCrossbow(), "Add Crossbow");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemArrow (), "Add Arrows");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemShoes(), "Add Shoes");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemLinenClothes(), "Add Linen Clothes");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWheatBeer(), "Add Beer");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBasket(), "Add Basket");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFurniture(), "Add Furniture");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemSoap(), "Add Soap");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemCandle(), "Add Candle");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemSpice(), "Add Spice");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPottery(), "Add Pottery");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemGlass(), "Add Glassware");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBarrel(), "Add Barrel");
-
-
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBerries(), "Add Berries");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemMeat(), "Add Meat");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemSmokedMeat(), "Add Smoked Meat");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBeans(), "Add Beans");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemGreens(), "Add Greens");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemRootVegetable(), "Add Vegetables");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemBread(), "Add Bread");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFish(), "Add Fish");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemSmokedFish(), "Add Smoked Fish");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemMushroom(), "Add Mushrooms");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemNuts(), "Add Nuts");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFruit(), "Add Fruits");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPreservedVeg(), "Add Preserved Vegetables");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPreserves(), "Add Preserves");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemEggs(), "Add Eggs");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemMilk(), "Add Milk");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemCheese(), "Add Cheese");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemMedicine(), "Add Medicine");
-
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFirewood(), "Add Firewood");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemPlanks(), "Add Planks");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFlour(), "Add Flour");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHide(), "Add Pelts");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemTallow(), "Add Tallow");
-
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemLogs(), "Add Wood");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemStone(), "Add Stone");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemRoots(), "Add Medicinal Roots");
-
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemGrain(), "Add Grain");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWater(), "Add Water");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemFlax(), "Add Flax");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHerbs(), "Add Herbs");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWillow(), "Add Willow");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemHoney(), "Add Honey");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemWax(), "Add Wax");
-
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemIron(), "Add Iron");
-                    CreateUIButton(getResumButton.gameObject, panelTemplate, new ItemGoldIngot(), "Add Gold");
-
-                    #endregion
-                    createScrollView(windowCanvas);
-                    createCloseButton(getResumButton.gameObject, panelTemplate);
-
-                    panelTemplate.transform.SetParent(windowCanvas.transform, false);
-
-                    panelTemplate.SetActiveRecursively(true);
-                    panelTemplate.SetActive(false);
-                    #endregion
+                    }
+                }
+                else if (selectedBuilding == null)
+                {
+                    finished = false;
                 }
             }
-
-            isFinishCreateUI = true;
         }
-        void createScrollView(GameObject uiPanel)
+        public GameObject createUIPanel(GameObject canvas, float height, float width, Sprite BgSprite = null)
         {
-            #region[Add a ScrollView]
             UIControls.Resources uiResources = new UIControls.Resources();
 
-            uiResources.background = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#9E9E9EFF"));
-            uiResources.standard = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#7AB900FF"));
-            uiResources.knob = UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#191919FF"));
+            uiResources.background = BgSprite;
 
-            MelonLogger.Msg("   Creating UI Slider");
-            GameObject uiSlider = UIControls.CreateSlider(uiResources);
-            var slider = uiSlider.GetComponent<Slider>();
+            GameObject uiPanel = UIControls.CreatePanel(uiResources);
+            uiPanel.transform.SetParent(canvas.transform, UIControls.createSpriteFrmTexture(UIControls.createDefaultTexture("#000000FF")));
 
-            uiSlider.transform.SetParent(uiPanel.transform, false);
+            RectTransform rectTransform = uiPanel.GetComponent<RectTransform>();
 
-            #endregion
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            // You can also use rectTransform.sizeDelta = new Vector2(width, height);
+
+            return uiPanel;
         }
-        void createCloseButton(GameObject buttonToCopy, GameObject panelTemplate2 )
-        {
-            var buttonCloseItemMenu = GameObject.Instantiate(buttonToCopy);
-            buttonCloseItemMenu.transform.DetachChildren();
-            buttonCloseItemMenu.name = "CloseItemMenuButton";
-            GameObject.DontDestroyOnLoad(buttonCloseItemMenu);
 
-            var buttonAction = buttonCloseItemMenu.GetComponent<Button>();
-            buttonAction.onClick.AddListener(delegate
+        GameObject createCloseButton(GameObject parent, Sprite sprite)
+        {
+            GameObject uiCloseButton = UIControls.CreateButton(new UIControls.Resources { standard = sprite });
+            uiCloseButton.name = "AddItemCloseButton";
+           
+            GameObject gameObject1 = new GameObject("AddItemCloseButtonText");
+            var component11 = gameObject1.AddComponent<RectTransform>();
+
+            var component12 = gameObject1.AddComponent<Text>();
+            component12.text = "Close Menu";
+            component12.fontSize = 14;
+            component12.fontStyle = FontStyle.Bold;
+            component12.color = Color.white;
+            component12.AssignDefaultFont();
+            component12.alignment = TextAnchor.MiddleCenter;
+
+            var buttonAddItemTemplatelayoutElement = uiCloseButton.AddComponent<LayoutElement>();
+            buttonAddItemTemplatelayoutElement.ignoreLayout = true;
+            buttonAddItemTemplatelayoutElement.preferredWidth = 130;
+            buttonAddItemTemplatelayoutElement.preferredHeight = 30;
+            buttonAddItemTemplatelayoutElement.minHeight = 30;
+            buttonAddItemTemplatelayoutElement.minWidth = 130;
+
+            var buttonActionuiButton = uiCloseButton.GetComponent<Button>();
+            buttonActionuiButton.onClick.AddListener(delegate
             {
-                var objs = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(Transform)));
-                foreach (var getObj in objs)
+                parent.SetActive(false);
+            });
+
+            gameObject1.transform.SetParent(uiCloseButton.transform, false);
+            
+            uiCloseButton.transform.SetParent(parent.transform, false);
+
+            return uiCloseButton;
+        }
+        void CreateUIButton(GameObject parent, Sprite background, Item item, string text)
+        {
+            GameObject uiBtnAddItem = UIControls.CreateButton(new UIControls.Resources { standard = background });
+            uiBtnAddItem.name = "Add" + item.name + "Button";
+
+            var buttonAddItemTemplatebuttonAction = uiBtnAddItem.GetComponent<Button>();
+            buttonAddItemTemplatebuttonAction.onClick.AddListener(delegate
+            {
+                var gameManagerAddItemObject = GameObject.Find("GameManager");
+                if (gameManagerAddItemObject != null)
                 {
-                    if (getObj.name != "AddItemMenu") continue;
-                    getObj.TryCast<Transform>().gameObject.SetActive(false);
+                    var inputManagerAddItem = gameManagerAddItemObject.GetComponent<InputManager>();
+                    if (inputManagerAddItem != null)
+                    {
+                        var selectedObj = inputManagerAddItem.selectedObject;
+                        if(selectedObj != null)
+                        {
+                            var selectedBuilding = selectedObj.GetComponent<Building>();
+                            if (selectedBuilding != null)
+                            {
+                                var itemBundle = new ItemBundle(item, 100, 100);
+                                selectedBuilding.storage.AddItems(itemBundle);
+                            }
+                        }                        
+                    }
                 }
             });
 
-            RectTransform toDestroy1 = buttonCloseItemMenu.GetComponent<RectTransform>();
-            GameObject.Destroy(toDestroy1);
-
-            var toDestroy2 = buttonCloseItemMenu.GetComponent<LayoutElement>();
-            GameObject.Destroy(toDestroy2);
-
-            buttonCloseItemMenu.AddComponent<RectTransform>();
-
-            var buttonCloseItemMenulayoutElement = buttonCloseItemMenu.AddComponent<LayoutElement>();
-            buttonCloseItemMenulayoutElement.ignoreLayout = true;
-
-            GameObject gameObject2 = new GameObject("buttonCloseItemMenuText");
-            var component21 = gameObject2.AddComponent<RectTransform>();
-
-            var component22 = gameObject2.AddComponent<Text>();
-            component22.text = "Close Menu";
-            component22.fontSize = 14;
-            component22.fontStyle = FontStyle.Bold;
-            component22.color = Color.white;
-            component22.AssignDefaultFont();
-            component22.alignment = TextAnchor.MiddleCenter;
-
-            gameObject2.transform.SetParent(buttonCloseItemMenu.transform, false);
-
-            var buttonCloseItemMenuRectTransofrm = buttonCloseItemMenu.GetComponent<RectTransform>();
-            buttonCloseItemMenuRectTransofrm.sizeDelta = new Vector2(100, 50);
-
-            buttonCloseItemMenu.transform.SetParent(panelTemplate2.transform, false);
-            buttonCloseItemMenu.transform.localPosition = new Vector3(0, -200, 0);
-
-            buttonCloseItemMenu.SetActiveRecursively(true);
-        }
-        void CreateUIButton(GameObject copyButton, GameObject panelTemplate, Item item, string text)
-        {
-            var buttonAddItemTemplate = GameObject.Instantiate(copyButton);
-            GameObject.DontDestroyOnLoad(buttonAddItemTemplate);
-            buttonAddItemTemplate.name = "Add" + item.name + "Button";
-            buttonAddItemTemplate.transform.DetachChildren();
-
-            var buttonAddItemTemplatebuttonAction = buttonAddItemTemplate.GetComponent<Button>();
-            buttonAddItemTemplatebuttonAction.onClick.AddListener(delegate
-            {
-                selectedItem = null;
-                selectedItem = item;
-                addItem();
-            });
-
-            RectTransform buttonAddItemTemplatebuttonActiontoDestroy1 = buttonAddItemTemplate.GetComponent<RectTransform>();
-            GameObject.Destroy(buttonAddItemTemplatebuttonActiontoDestroy1);
-
-            var buttonAddItemTemplatetoDestroy2 = buttonAddItemTemplate.GetComponent<LayoutElement>();
-            GameObject.Destroy(buttonAddItemTemplatetoDestroy2);
-
-            buttonAddItemTemplate.AddComponent<RectTransform>();
-
-            var buttonAddItemTemplatelayoutElement = buttonAddItemTemplate.AddComponent<LayoutElement>();
+            var buttonAddItemTemplatelayoutElement = uiBtnAddItem.AddComponent<LayoutElement>();
             buttonAddItemTemplatelayoutElement.ignoreLayout = false;
+            buttonAddItemTemplatelayoutElement.preferredWidth = 80;
+            buttonAddItemTemplatelayoutElement.preferredHeight = 80;
+            buttonAddItemTemplatelayoutElement.minHeight = 80;
+            buttonAddItemTemplatelayoutElement.minWidth= 80;
 
-
-
-            GameObject buttonAddItemTemplategameObject1 = new GameObject("buttonAddItemTemplateIcon");
+            GameObject buttonAddItemTemplategameObject1 = new GameObject("buttonAddItemTemplateIcon"+item.name);
             var buttonAddItemTemplategameObject11 = buttonAddItemTemplategameObject1.AddComponent<RectTransform>();
+            buttonAddItemTemplategameObject11.sizeDelta = new Vector2(80, 80);
 
             var buttonAddItemTemplategameObject12 = buttonAddItemTemplategameObject1.AddComponent<Image>();
             buttonAddItemTemplategameObject12.sprite = item.icon;
             buttonAddItemTemplategameObject12.preserveAspect = true;
-            buttonAddItemTemplategameObject12.transform.SetParent(buttonAddItemTemplate.transform, false);
+            buttonAddItemTemplategameObject12.transform.SetParent(uiBtnAddItem.transform, false);
 
             GameObject buttonAddItemTemplategameObject2 = new GameObject("buttonAddItemTemplateText"+item.name);
             var buttonAddItemTemplatecomponent21 = buttonAddItemTemplategameObject2.AddComponent<RectTransform>();
 
             var buttonAddItemTemplatecomponent22 = buttonAddItemTemplategameObject2.AddComponent<Text>();
             buttonAddItemTemplatecomponent22.text = text;
-            buttonAddItemTemplatecomponent22.fontSize = 14;
+            buttonAddItemTemplatecomponent22.fontSize = 12;
             buttonAddItemTemplatecomponent22.fontStyle = FontStyle.Bold;
             buttonAddItemTemplatecomponent22.color = Color.white;
             buttonAddItemTemplatecomponent22.AssignDefaultFont();
             buttonAddItemTemplatecomponent22.alignment = TextAnchor.MiddleCenter;
 
-            buttonAddItemTemplategameObject2.transform.SetParent(buttonAddItemTemplate.transform, false);
+            buttonAddItemTemplatecomponent22.transform.SetParent(uiBtnAddItem.transform, false);
 
-            buttonAddItemTemplate.transform.SetParent(panelTemplate.transform, false);
-
-            buttonAddItemTemplate.SetActiveRecursively(true);
-        }
-
-        void addItem()
-        {
-            var gameManagerAddItemObject = GameObject.Find("GameManager");
-            if (gameManagerAddItemObject != null)
-            {
-                var inputManagerAddItem = gameManagerAddItemObject.GetComponent<InputManager>();
-                if (inputManagerAddItem != null)
-                {
-                    var selectedBuilding = inputManagerAddItem.selectedObject.GetComponent<Building>();
-                    if (selectedBuilding != null)
-                    {
-                        MelonLogger.Msg("bisa");
-                        var itemBundle = new ItemBundle(selectedItem, 100, 100);
-                        selectedBuilding.storage.AddItems(itemBundle);
-                    }
-                }
-            }
+            uiBtnAddItem.transform.SetParent(parent.transform, false);
         }
     }
 }
