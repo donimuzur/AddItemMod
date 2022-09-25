@@ -18,7 +18,7 @@ namespace AddItemMod
         public const string Description = "Mod to Add Item";
         public const string Author = "donimuzur"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "2.3.0"; // Version of the Mod.  (MUST BE SET)
+        public const string Version = "2.4.3"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)    
     }
 
@@ -41,16 +41,16 @@ namespace AddItemMod
         }
         public override void OnUpdate()
         {
-            if (SceneManager.GetActiveScene().name != "Frontier") return;
+            if (finished) return;
 
             var gameManagerObj = GameObject.Find("GameManager");
             if (gameManagerObj != null)
             {
                 inputManager = gameManagerObj.GetComponent<InputManager>();
+               
                 selectedBuilding = inputManager.selectedObject;
-                if (selectedBuilding != null && !finished)
+                if (selectedBuilding != null )
                 {
-                    GameObject.Destroy(GameObject.Find("AddItemButton"));
                     var getUIpausWindowList = Resources.FindObjectsOfTypeAll(Il2CppType.From(typeof(UIPauseWindow)));
 
                     if (getUIpausWindowList != null && getUIpausWindowList.Count > 0)
@@ -63,7 +63,7 @@ namespace AddItemMod
                             if (getUIBuildingInfoWindowStorageModuleCollapsible != null)
                             {
                                 GameObject windowCanvas = GameObject.FindObjectOfType<UIWindowManager>().gameObject;
-                                var uiPanel = createUIPanel(windowCanvas, 600, 1000, null);
+                                var uiPanel = createUIPanel(windowCanvas, 650, 1000, null);
                                 uiPanel.name = "AddItemPanel";
 
                                 var panelComponent1 = uiPanel.AddComponent<UIDragable>();
@@ -139,7 +139,6 @@ namespace AddItemMod
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGlass(), "Add Glassware");
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBarrel(), "Add Barrel");
 
-
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBerries(), "Add Berries");
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemMeat(), "Add Meat");
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSmokedMeat(), "Add Smoked Meat");
@@ -183,29 +182,33 @@ namespace AddItemMod
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemHeavyTool(), "Add Heavy Tool");
                                 CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemBrick(), "Add Brick");
 
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemAnimalTrap(), "Add Animal Trap");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemClay(), "Add Clay");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemClover(), "Add Clover");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCoal(), "Add Coal");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemGoldOre(), "Add Golden Ore");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCompost(), "Add Compost");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemIronOre(), "Add Iron Ore");
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemSand(), "Add Sand");
+                                
+                                CreateUIButton(uiPanel, getResumeButton.GetComponent<Image>().sprite, new ItemCow(), "Add Cow");
 
                                 var uiCloseButton = createCloseButton(uiPanel, getResumeButton.GetComponent<Image>().sprite);
                                 var uiCloseButtonRectTransofrm = uiCloseButton.GetComponent<RectTransform>();
                                 uiCloseButtonRectTransofrm.anchoredPosition = Vector3.zero;
-                                uiCloseButtonRectTransofrm.localPosition = new Vector3(0, -250, 0);
+                                uiCloseButtonRectTransofrm.localPosition = new Vector3(0, -265, 0);
 
                                 var uiSlider = createSlider(uiPanel);
                                 var uiSliderRectTransofrm = uiSlider.GetComponent<RectTransform>();
                                 uiSliderRectTransofrm.anchoredPosition = Vector3.zero;
-                                uiSliderRectTransofrm.localPosition = new Vector3(120, -190, 0);
+                                uiSliderRectTransofrm.localPosition = new Vector3(200, -265, 0);
                                 #endregion
 
                                 finished = true;
 
                             }
-
                         }
                     }
-                }
-                else if (selectedBuilding == null)
-                {
-                    finished = false;
-                    sliderValue = 100;
                 }
             }
         }
@@ -253,13 +256,13 @@ namespace AddItemMod
 
             var uiSliderlayoutElement = uiSlider.AddComponent<LayoutElement>();
             uiSliderlayoutElement.ignoreLayout = true;
-            uiSliderlayoutElement.preferredWidth = 300;
+            uiSliderlayoutElement.preferredWidth = 200;
             uiSliderlayoutElement.preferredHeight = 40;
             uiSliderlayoutElement.minHeight = 40;
-            uiSliderlayoutElement.minWidth = 300;
+            uiSliderlayoutElement.minWidth = 200;
             
             var uiSliderRectTransform = uiSlider.GetComponent<RectTransform>();
-            uiSliderRectTransform.sizeDelta = new Vector2(300, 40);
+            uiSliderRectTransform.sizeDelta = new Vector2(200, 40);
 
             uiSlider.transform.SetParent(uiPanel.transform, false);
 
@@ -284,7 +287,7 @@ namespace AddItemMod
 
             var uiSliderTextRectTransofrm = uiSliderText.GetComponent<RectTransform>();
             uiSliderTextRectTransofrm.anchoredPosition = Vector3.zero;
-            uiSliderTextRectTransofrm.localPosition = new Vector3(300, -190, 0);
+            uiSliderTextRectTransofrm.localPosition = new Vector3(200, -265, 0);
 
             return uiSlider;
         }
@@ -343,8 +346,25 @@ namespace AddItemMod
                             var selectedBuilding = selectedObj.GetComponent<Building>();
                             if (selectedBuilding != null)
                             {
-                                var itemBundle = new ItemBundle(item, Convert.ToUInt32(sliderValue), 100);
-                                selectedBuilding.storage.AddItems(itemBundle);
+                                if(item.itemID == ItemID.Cow)
+                                {
+                                    var barn = selectedBuilding.GetComponent<Barn>();
+                                    if (barn != null)
+                                    {
+                                        var cow= Resource.FindObjectOfType<Cow>();
+                                        if(cow != null)
+                                        {                                            
+                                            var cowClone = GameObject.Instantiate(cow.gameObject);
+                                            cowClone.transform.localPosition = barn.transform.localPosition;
+                                            barn.herd.AddAnimalToHerd(cowClone.GetComponent<Cow>());
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var itemBundle = new ItemBundle(item, Convert.ToUInt32(sliderValue), 100);
+                                    selectedBuilding.storage.AddItems(itemBundle);
+                                }
                             }
                         }                        
                     }
