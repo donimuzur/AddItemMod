@@ -351,10 +351,10 @@ namespace AddItemMod
                                     var barn = selectedBuilding.GetComponent<Barn>();
                                     if (barn != null)
                                     {
-                                        var cow= Resource.FindObjectOfType<Cow>();
+                                        var cow = GlobalAssets.prefabAssetMap.GetPrefab("7b65f80b-c40a-4485-84ab-69cb1332ca55");
                                         if(cow != null)
                                         {                                            
-                                            var cowClone = GameObject.Instantiate(cow.gameObject);
+                                            var cowClone = GameObject.Instantiate(cow);
                                             cowClone.transform.localPosition = barn.transform.localPosition;
                                             barn.herd.AddAnimalToHerd(cowClone.GetComponent<Cow>());
                                         }
